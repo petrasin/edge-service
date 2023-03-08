@@ -49,6 +49,13 @@ spring:
               maxBackOff: 500ms
               factor: 2
               basedOnPreviousValue: false
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter:
+              replenishRate: 10
+              burstCapacity: 20
+              requestedTokens: 1
+
   data:
     redis:
       host: localhost
