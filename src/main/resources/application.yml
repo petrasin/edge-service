@@ -10,7 +10,19 @@ spring:
     name: edge-service
   lifecycle:
     timeout-per-shutdown-phase: 15s
+  config:
+    import: "optional:configserver:"
   cloud:
+    config:
+      uri: http://localhost:8888
+      request-connect-timeout: 5000 # 5s
+      request-read-timeout: 5000 # 5s
+      fail-fast: false # In production, set to true
+      retry:
+        max-attempts: 6
+        initial-interval: 1000 # 1s
+        max-interval: 2000 # 2s
+        multiplier: 1.1
     gateway:
       httpclient:
         connect-timeout: 2000
@@ -38,6 +50,8 @@ spring:
               args:
                 name: orderCircuitBreaker
       default-filters:
+        - name: SaveSession
+
         - name: Retry
           args:
             retries: 3
@@ -55,13 +69,16 @@ spring:
               replenishRate: 10
               burstCapacity: 20
               requestedTokens: 1
-
-  data:
-    redis:
+  redis:
       host: localhost
       port: 6379
       connect-timeout: 2s
       timeout: 1s
+  session:
+    store-type: redis
+    timeout: 10m
+    redis:
+      namespace: polar:edge
 resilience4j:
   circuitbreaker:
     configs:
