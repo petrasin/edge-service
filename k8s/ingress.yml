@@ -2,10 +2,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: polar-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
 spec:
-  ingressClassName: nginx
+#  ingressClassName: nginx
   rules:
-    - http:
+    - host: kubernetes.docker.internal
+      http:
         paths:
           - path: /
             pathType: Prefix
