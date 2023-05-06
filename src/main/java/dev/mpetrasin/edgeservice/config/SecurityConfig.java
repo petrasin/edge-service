@@ -23,7 +23,6 @@ import reactor.core.publisher.Mono;
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
-
   @Bean
   ServerOAuth2AuthorizedClientRepository authorizedClientRepository() {
     return new WebSessionServerOAuth2AuthorizedClientRepository();
@@ -31,23 +30,21 @@ public class SecurityConfig {
 
   @Bean
   SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http,
-                                                   ReactiveClientRegistrationRepository clientRegistrationRepository) {
+      ReactiveClientRegistrationRepository clientRegistrationRepository) {
     return http
         .authorizeExchange(exchange -> exchange
             .pathMatchers("/", "/*.css", "/*.js", "/favicon.ico")
-              .permitAll()
-            .pathMatchers(HttpMethod.GET,"/books/**")
-              .permitAll()
+            .permitAll()
+            .pathMatchers("/actuator/health/**")
+            .permitAll()
+            .pathMatchers(HttpMethod.GET, "/books/**")
+            .permitAll()
             .anyExchange().authenticated())
-        .exceptionHandling(exceptionHandlingSpec ->
-            exceptionHandlingSpec.authenticationEntryPoint(
-                new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)
-            )
-        )
+        .exceptionHandling(exceptionHandlingSpec -> exceptionHandlingSpec.authenticationEntryPoint(
+            new HttpStatusServerEntryPoint(HttpStatus.UNAUTHORIZED)))
         .oauth2Login(Customizer.withDefaults())
         .logout(logout -> logout.logoutSuccessHandler(oidcLogoutSuccessHandler(
-            clientRegistrationRepository
-        )))
+            clientRegistrationRepository)))
         .csrf(csrf -> csrf.csrfTokenRepository(CookieServerCsrfTokenRepository.withHttpOnlyFalse()))
         .build();
   }
@@ -64,13 +61,10 @@ public class SecurityConfig {
   }
 
   private ServerLogoutSuccessHandler oidcLogoutSuccessHandler(
-      ReactiveClientRegistrationRepository clientRegistrationRepository
-  ) {
-    var oidLogoutSuccessHandler =
-        new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
+      ReactiveClientRegistrationRepository clientRegistrationRepository) {
+    var oidLogoutSuccessHandler = new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
     oidLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}");
     return oidLogoutSuccessHandler;
   }
-
 
 }
